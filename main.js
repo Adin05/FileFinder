@@ -261,6 +261,40 @@ ipcMain.handle('merge-folders', async (event, sourceFolders, targetFolder) => {
     
     if (!isMerging) return { success: false, error: 'Stopped by user' };
     
+    event.sender.send('merge-progress', `Found ${allFiles.length} files. Analyzing naming patterns...`);
+    
+    // Pass 1: Determine categories and count them
+    const categoryCounts = {};
+    for (let i = 0; i < allFiles.length; i++) {
+        const file = allFiles[i];
+        const lowerName = file.name.toLowerCase();
+        let subCat = '';
+        
+        if (lowerName.includes('screenshot') || lowerName.includes('screen shot') || lowerName.includes('snip')) {
+            subCat = 'Screenshots';
+        } else if (lowerName.includes('screen recording') || lowerName.includes('screen record')) {
+            subCat = 'Screen Recordings';
+        } else if (lowerName.includes('whatsapp') || lowerName.includes('wa0')) {
+            subCat = 'WhatsApp';
+        } else if (lowerName.includes('instagram') || lowerName.includes('ig_')) {
+            subCat = 'Instagram';
+        } else if (lowerName.startsWith('img') || lowerName.startsWith('dsc') || lowerName.startsWith('pxl_') || lowerName.startsWith('vid')) {
+            subCat = 'Camera';
+        } else {
+            const prefixMatch = file.name.match(/^([a-zA-Z]+)[\_\- \.]\d+/);
+            if (prefixMatch && prefixMatch[1].length > 2 && prefixMatch[1].length < 15) {
+                const pfx = prefixMatch[1];
+                subCat = pfx.charAt(0).toUpperCase() + pfx.slice(1).toLowerCase();
+            }
+        }
+        
+        file.plannedCategory = subCat;
+        if (subCat) {
+            const key = `${file.ext.toUpperCase()}/${subCat}`;
+            categoryCounts[key] = (categoryCounts[key] || 0) + 1;
+        }
+    }
+    
     event.sender.send('merge-progress', `Found ${allFiles.length} files. Starting organization...`);
     
     // Process moves
@@ -268,8 +302,19 @@ ipcMain.handle('merge-folders', async (event, sourceFolders, targetFolder) => {
         if (!isMerging) break;
         const file = allFiles[i];
         
-        // Target dir: targetFolder / ext
-        const targetDir = path.join(targetFolder, file.ext.toUpperCase());
+        let subCategory = file.plannedCategory;
+        if (subCategory) {
+            const key = `${file.ext.toUpperCase()}/${subCategory}`;
+            // If there's only 1 file matching this specific naming rule, don't create a whole subfolder for it
+            if (categoryCounts[key] === 1) {
+                subCategory = '';
+            }
+        }
+        
+        const targetDir = subCategory 
+            ? path.join(targetFolder, file.ext.toUpperCase(), subCategory)
+            : path.join(targetFolder, file.ext.toUpperCase());
+            
         try {
             await fs.mkdir(targetDir, { recursive: true });
         } catch(e) {}
