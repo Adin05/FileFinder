@@ -206,3 +206,107 @@ ipcMain.handle('find-duplicates', async (event, folderPath, excludeList = []) =>
     return { completed: false, results: 0 };
   }
 });
+
+let isMerging = false;
+
+ipcMain.on('stop-merge', () => {
+  isMerging = false;
+});
+
+const SAFE_EXTENSIONS = new Set([
+  // Images
+  'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp', 'svg', 'heic', 'raw',
+  // Video
+  'mp4', 'mkv', 'avi', 'mov', 'wmv', 'flv', 'webm', 'm4v',
+  // Audio
+  'mp3', 'wav', 'ogg', 'flac', 'm4a', 'wma', 'aac',
+  // Documents
+  'txt', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'rtf', 'csv', 'md',
+  // Archives
+  'zip', 'rar', '7z', 'tar', 'gz'
+]);
+
+ipcMain.handle('merge-folders', async (event, sourceFolders, targetFolder) => {
+  let filesMoved = 0;
+  isMerging = true;
+
+  try {
+    const allFiles = []; // { path, name, ext }
+
+    // recursive file collector
+    async function collectFiles(dir) {
+      if (!isMerging) return;
+      try {
+        const entries = await fs.readdir(dir, { withFileTypes: true });
+        for (const entry of entries) {
+           if (!isMerging) return;
+           const fullPath = path.join(dir, entry.name);
+           if (entry.isDirectory()) {
+             await collectFiles(fullPath);
+           } else if (entry.isFile()) {
+             let ext = path.extname(entry.name).replace('.', '').toLowerCase();
+             // Only process recognized safe media/document extensions
+             if (SAFE_EXTENSIONS.has(ext)) {
+                 allFiles.push({ path: fullPath, name: entry.name, ext });
+             }
+           }
+        }
+      } catch (e) {}
+    }
+
+    event.sender.send('merge-progress', 'Scanning source folders for files...');
+    for (const folder of sourceFolders) {
+       await collectFiles(folder);
+    }
+    
+    if (!isMerging) return { success: false, error: 'Stopped by user' };
+    
+    event.sender.send('merge-progress', `Found ${allFiles.length} files. Starting organization...`);
+    
+    // Process moves
+    for (let i = 0; i < allFiles.length; i++) {
+        if (!isMerging) break;
+        const file = allFiles[i];
+        
+        // Target dir: targetFolder / ext
+        const targetDir = path.join(targetFolder, file.ext.toUpperCase());
+        try {
+            await fs.mkdir(targetDir, { recursive: true });
+        } catch(e) {}
+        
+        let destPath = path.join(targetDir, file.name);
+        
+        // Handle collision
+        let counter = 1;
+        while (fsSync.existsSync(destPath)) {
+            const parsed = path.parse(file.name);
+            destPath = path.join(targetDir, `${parsed.name}_${counter}${parsed.ext}`);
+            counter++;
+        }
+        
+        try {
+            await fs.rename(file.path, destPath);
+            filesMoved++;
+        } catch (e) {
+            if (e.code === 'EXDEV') {
+                try {
+                    await fs.copyFile(file.path, destPath);
+                    await fs.unlink(file.path);
+                    filesMoved++;
+                } catch(err) {} // Ignore copy/unlink errs
+            }
+        }
+        
+        if (filesMoved % 25 === 0) {
+            event.sender.send('merge-progress', `Moved ${filesMoved} of ${allFiles.length} files...`);
+        }
+        
+        // Yield to event loop
+        await new Promise(resolve => setImmediate(resolve));
+    }
+    
+    return { success: true, filesMoved };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+});

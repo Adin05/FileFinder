@@ -10,5 +10,8 @@ contextBridge.exposeInMainWorld('api', {
   onDuplicateResult: (callback) => ipcRenderer.on('duplicate-result', (_event, value) => callback(value)),
   openPath: (filePath) => ipcRenderer.invoke('open-path', filePath),
   openFile: (filePath) => ipcRenderer.invoke('open-file', filePath),
-  trashFile: (filePath) => ipcRenderer.invoke('trash-file', filePath)
+  trashFile: (filePath) => ipcRenderer.invoke('trash-file', filePath),
+  startMerge: (sources, target) => ipcRenderer.invoke('merge-folders', sources, target),
+  stopMerge: () => ipcRenderer.send('stop-merge'),
+  onMergeProgress: (callback) => ipcRenderer.on('merge-progress', (_event, msg) => callback(msg))
 });

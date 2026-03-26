@@ -160,3 +160,51 @@ li:last-child {
 .open-btn:hover {
     background-color: #45475a;
 }
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 10px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.tabs button {
+    background-color: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--border);
+    flex-grow: 1;
+}
+
+.tabs button:hover {
+    background-color: var(--secondary);
+}
+
+.tabs button.active {
+    background-color: var(--primary);
+    color: #11111b;
+}
+
+.folder-chip {
+    background-color: var(--secondary);
+    padding: 5px 10px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 5px;
+    border: 1px solid var(--border);
+}
+
+.remove-chip {
+    background-color: var(--accent);
+    color: #11111b;
+    padding: 2px 6px;
+    font-size: 0.8em;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+}

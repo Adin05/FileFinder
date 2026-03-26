@@ -359,3 +359,129 @@ batchTrashAllBtn.addEventListener('click', async () => {
     batchTrashAllBtn.disabled = false;
     batchTrashAllBtn.style.display = 'none';
 });
+
+// --- Tab Logic ---
+const tabSearch = document.getElementById('tabSearch');
+const tabMerge = document.getElementById('tabMerge');
+const searchView = document.getElementById('searchView');
+const mergeView = document.getElementById('mergeView');
+
+tabSearch.addEventListener('click', () => {
+    tabSearch.classList.add('active');
+    tabMerge.classList.remove('active');
+    searchView.style.display = 'flex';
+    mergeView.style.display = 'none';
+});
+
+tabMerge.addEventListener('click', () => {
+    tabMerge.classList.add('active');
+    tabSearch.classList.remove('active');
+    mergeView.style.display = 'flex';
+    searchView.style.display = 'none';
+});
+
+// --- Merge & Organize Logic ---
+const selectMergeSourceBtn = document.getElementById('selectMergeSourceBtn');
+const selectMergeTargetBtn = document.getElementById('selectMergeTargetBtn');
+const mergeTargetPath = document.getElementById('mergeTargetPath');
+const mergeSourcesList = document.getElementById('mergeSourcesList');
+const startMergeBtn = document.getElementById('startMergeBtn');
+const stopMergeBtn = document.getElementById('stopMergeBtn');
+const mergeStatusArea = document.getElementById('mergeStatusArea');
+
+let mergeSources = [];
+let mergeTarget = '';
+
+function updateMergeSourcesUI() {
+    mergeSourcesList.innerHTML = '';
+    
+    if (mergeSources.length === 0) {
+        mergeSourcesList.innerHTML = '<span style="color: #6c7086;">No source folders selected.</span>';
+    } else {
+        mergeSources.forEach((sourcePath) => {
+            const chip = document.createElement('div');
+            chip.className = 'folder-chip';
+            
+            const textSpan = document.createElement('span');
+            textSpan.textContent = sourcePath;
+            textSpan.style.wordBreak = 'break-all';
+            textSpan.style.fontSize = '0.9em';
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-chip';
+            removeBtn.textContent = 'X';
+            removeBtn.title = 'Remove folder';
+            removeBtn.addEventListener('click', () => {
+                mergeSources = mergeSources.filter(p => p !== sourcePath);
+                updateMergeSourcesUI();
+                updateStartMergeBtn();
+            });
+            
+            chip.appendChild(textSpan);
+            chip.appendChild(removeBtn);
+            mergeSourcesList.appendChild(chip);
+        });
+    }
+}
+
+function updateStartMergeBtn() {
+    startMergeBtn.disabled = mergeSources.length === 0 || !mergeTarget;
+}
+
+selectMergeSourceBtn.addEventListener('click', async () => {
+    const folders = await window.api.selectMultipleFolders();
+    if (folders && folders.length > 0) {
+        folders.forEach(folder => {
+            if (!mergeSources.includes(folder)) {
+                mergeSources.push(folder);
+            }
+        });
+        updateMergeSourcesUI();
+        updateStartMergeBtn();
+    }
+});
+
+selectMergeTargetBtn.addEventListener('click', async () => {
+    const folder = await window.api.selectFolder();
+    if (folder) {
+        mergeTarget = folder;
+        mergeTargetPath.value = mergeTarget;
+        updateStartMergeBtn();
+    }
+});
+
+startMergeBtn.addEventListener('click', async () => {
+    if (mergeSources.length === 0 || !mergeTarget) return;
+    
+    startMergeBtn.disabled = true;
+    stopMergeBtn.disabled = false;
+    selectMergeSourceBtn.disabled = true;
+    selectMergeTargetBtn.disabled = true;
+    
+    mergeStatusArea.textContent = 'Starting merge process...';
+    
+    const result = await window.api.startMerge(mergeSources, mergeTarget);
+    
+    startMergeBtn.disabled = false;
+    stopMergeBtn.disabled = true;
+    selectMergeSourceBtn.disabled = false;
+    selectMergeTargetBtn.disabled = false;
+    
+    if (result.success) {
+        mergeStatusArea.textContent = `Merge complete. Organized ${result.filesMoved} files.`;
+    } else {
+        mergeStatusArea.textContent = `Merge stopped or failed: ${result.error || ''}`;
+    }
+});
+
+stopMergeBtn.addEventListener('click', () => {
+    window.api.stopMerge();
+    mergeStatusArea.textContent = 'Stopping merge process...';
+    stopMergeBtn.disabled = true;
+});
+
+window.api.onMergeProgress((message) => {
+    mergeStatusArea.textContent = message;
+});
+
+updateMergeSourcesUI();

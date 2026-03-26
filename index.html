@@ -6,7 +6,12 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
+    <div class="tabs">
+        <button id="tabSearch" class="active">Search & Duplicates</button>
+        <button id="tabMerge">Merge & Organize</button>
+    </div>
+
+    <div class="container" id="searchView">
         <h1>File & Folder Search</h1>
         
         <div class="controls">
@@ -38,6 +43,33 @@
         <div class="results-container">
             <ul id="resultsList"></ul>
         </div>
+    </div>
+    
+    <div class="container" id="mergeView" style="display: none;">
+        <h1>Merge & Organize Folders</h1>
+        
+        <div class="controls">
+            <p style="margin-top: 0; margin-bottom: 10px; color: #a6adc8;">Combines multiple folders into one cleanly. Safely migrates ONLY media and document files (photos, videos, music, PDFs, text, zip, etc.) so software installations and system files are ignored and remain untouched.</p>
+            
+            <div class="input-group" style="margin-bottom: 10px;">
+                <button id="selectMergeSourceBtn">Add Source Folder</button>
+            </div>
+            <div id="mergeSourcesList" style="margin-bottom: 15px; min-height: 40px; padding: 10px; background-color: #181825; border-radius: 4px; border: 1px solid var(--border);">
+                <!-- Source chips go here -->
+            </div>
+            
+            <div class="input-group">
+                <button id="selectMergeTargetBtn">Select Target Folder</button>
+                <input type="text" id="mergeTargetPath" readonly placeholder="Destination for organized files">
+            </div>
+            
+            <div class="input-group" style="margin-top: 15px;">
+                <button id="startMergeBtn" disabled>Start Merge & Organize</button>
+                <button id="stopMergeBtn" disabled style="background-color: var(--accent);">Stop</button>
+            </div>
+        </div>
+        
+        <div class="status" id="mergeStatusArea">Ready. Select source and target folders.</div>
     </div>
     
     <script src="renderer.js"></script>
