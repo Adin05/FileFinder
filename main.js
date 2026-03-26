@@ -215,15 +215,15 @@ ipcMain.on('stop-merge', () => {
 
 const SAFE_EXTENSIONS = new Set([
   // Images
-  'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp', 'heic', 'raw',
+  'jpg', 'jpeg', 'png', 'gif', 'tiff', 'webp', 'heic', 'raw',
   // Video
   'mp4', 'mkv', 'avi', 'mov', 'wmv', 'flv', 'webm', 'm4v',
   // Audio
   'mp3', 'wav', 'ogg', 'flac', 'm4a', 'wma', 'aac',
   // Documents
-  'txt', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'csv', 'md',
+  'txt', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'csv',
   // Archives
-  'zip', 'rar', '7z', 'tar'
+  'zip', 'rar', '7z'
 ]);
 
 ipcMain.handle('merge-folders', async (event, sourceFolders, targetFolder) => {
