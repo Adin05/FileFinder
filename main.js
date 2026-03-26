@@ -42,6 +42,14 @@ ipcMain.handle('open-path', async (event, filePath) => {
   shell.showItemInFolder(filePath);
 });
 
+ipcMain.handle('open-file', async (event, filePath) => {
+  await shell.openPath(filePath);
+});
+
+ipcMain.handle('trash-file', async (event, filePath) => {
+  await shell.trashItem(filePath);
+});
+
 let isSearching = false;
 
 ipcMain.on('stop-search', () => {

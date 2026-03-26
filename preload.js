@@ -7,5 +7,7 @@ contextBridge.exposeInMainWorld('api', {
   stopSearch: () => ipcRenderer.send('stop-search'),
   onSearchResult: (callback) => ipcRenderer.on('search-result', (_event, value) => callback(value)),
   onDuplicateResult: (callback) => ipcRenderer.on('duplicate-result', (_event, value) => callback(value)),
-  openPath: (filePath) => ipcRenderer.invoke('open-path', filePath)
+  openPath: (filePath) => ipcRenderer.invoke('open-path', filePath),
+  openFile: (filePath) => ipcRenderer.invoke('open-file', filePath),
+  trashFile: (filePath) => ipcRenderer.invoke('trash-file', filePath)
 });

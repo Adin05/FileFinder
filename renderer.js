@@ -121,15 +121,43 @@ window.api.onSearchResult((result) => {
     infoDiv.appendChild(nameSpan);
     infoDiv.appendChild(pathSpan);
     
+    const actionsDiv = document.createElement('div');
+    actionsDiv.style.display = 'flex';
+    actionsDiv.style.gap = '5px';
+    
+    const openFileBtn = document.createElement('button');
+    openFileBtn.className = 'open-btn';
+    openFileBtn.textContent = 'Open';
+    openFileBtn.addEventListener('click', () => {
+        window.api.openFile(result.path);
+    });
+
     const openBtn = document.createElement('button');
     openBtn.className = 'open-btn';
     openBtn.textContent = 'Show in Explorer';
     openBtn.addEventListener('click', () => {
         window.api.openPath(result.path);
     });
+
+    const trashBtn = document.createElement('button');
+    trashBtn.className = 'open-btn';
+    trashBtn.style.backgroundColor = 'var(--accent)';
+    trashBtn.textContent = 'Trash';
+    trashBtn.addEventListener('click', async () => {
+        try {
+            await window.api.trashFile(result.path);
+            li.remove();
+        } catch (error) {
+            console.error('Failed to trash file:', error);
+        }
+    });
+    
+    actionsDiv.appendChild(openFileBtn);
+    actionsDiv.appendChild(openBtn);
+    actionsDiv.appendChild(trashBtn);
     
     li.appendChild(infoDiv);
-    li.appendChild(openBtn);
+    li.appendChild(actionsDiv);
     
     resultsList.appendChild(li);
 });
@@ -172,6 +200,15 @@ window.api.onDuplicateResult((duplicates) => {
         infoDiv.appendChild(pathSpan);
         
         const actionsDiv = document.createElement('div');
+        actionsDiv.style.display = 'flex';
+        actionsDiv.style.gap = '5px';
+        
+        const openFileBtn = document.createElement('button');
+        openFileBtn.className = 'open-btn';
+        openFileBtn.textContent = 'Open';
+        openFileBtn.addEventListener('click', () => {
+            window.api.openFile(result.path);
+        });
         
         const openBtn = document.createElement('button');
         openBtn.className = 'open-btn';
@@ -179,8 +216,26 @@ window.api.onDuplicateResult((duplicates) => {
         openBtn.addEventListener('click', () => {
             window.api.openPath(result.path);
         });
+
+        const trashBtn = document.createElement('button');
+        trashBtn.className = 'open-btn';
+        trashBtn.style.backgroundColor = 'var(--accent)';
+        trashBtn.textContent = 'Trash';
+        trashBtn.addEventListener('click', async () => {
+            try {
+                await window.api.trashFile(result.path);
+                fileDiv.remove();
+                if (groupLi.querySelectorAll('.file-info').length === 0) {
+                    groupLi.remove();
+                }
+            } catch (error) {
+                console.error('Failed to trash file:', error);
+            }
+        });
         
+        actionsDiv.appendChild(openFileBtn);
         actionsDiv.appendChild(openBtn);
+        actionsDiv.appendChild(trashBtn);
         
         fileDiv.appendChild(infoDiv);
         fileDiv.appendChild(actionsDiv);
