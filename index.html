@@ -18,11 +18,20 @@
             <div class="input-group">
                 <input type="text" id="searchInput" placeholder="Enter file or folder name to search...">
                 <button id="searchBtn" disabled>Search</button>
+                <button id="findDuplicatesBtn" disabled>Find Duplicates</button>
                 <button id="stopBtn" disabled>Stop</button>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="excludeInput" placeholder="Exclude folders (comma separated, e.g. node_modules, .git)">
             </div>
         </div>
 
         <div class="status" id="statusArea">Ready. Waiting for input.</div>
+
+        <div class="result-actions" style="margin-bottom: 10px;">
+            <input type="text" id="filterInput" placeholder="Filter displayed results by name..." style="width: 100%; box-sizing: border-box;">
+        </div>
         
         <div class="results-container">
             <ul id="resultsList"></ul>
