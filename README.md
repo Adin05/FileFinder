@@ -38,8 +38,9 @@ File migration and organization often leaves behind massive trees of utterly use
 - **Backend Packages**: Native `fs` handles recursive directory parsing; native `crypto` handles hash generation.
 - **Frontend**: Lightweight, vanilla HTML/JS/CSS interface featuring custom dark-mode aesthetics.
 
-## How to Run
+## How to Run & Build
 
+### Running Locally
 1. Open your terminal inside this project directory.
 2. Install the necessary packages:
    ```bash
@@ -49,3 +50,16 @@ File migration and organization often leaves behind massive trees of utterly use
    ```bash
    npm start
    ```
+
+### Building a Portable App (.exe)
+You can easily compile this entire application into a single, portable Windows `.exe` file that you can carry on a flash drive or share with others without needing them to install NodeJS.
+
+1. Install dependencies first:
+   ```bash
+   npm install
+   ```
+2. Run the build command:
+   ```bash
+   npm run build
+   ```
+3. Once completed, your portable executable will be generated inside a new `dist/` folder, ready to use!

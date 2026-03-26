@@ -2,10 +2,27 @@
   "name": "file-finder",
   "version": "1.0.0",
   "main": "main.js",
+  "description": "A powerful local File Finder and Folder Organizer",
+  "author": "You",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-builder --win"
   },
   "devDependencies": {
-    "electron": "^29.0.0"
+    "electron": "^41.0.4",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.filefinder.organizer",
+    "productName": "FormatOrganizer",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "portable"
+    },
+    "portable": {
+      "artifactName": "${productName}_v${version}_Portable.exe"
+    }
   }
 }
