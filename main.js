@@ -38,6 +38,13 @@ ipcMain.handle('select-folder', async () => {
   return result.filePaths[0];
 });
 
+ipcMain.handle('select-multiple-folders', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory', 'multiSelections']
+  });
+  return result.filePaths;
+});
+
 ipcMain.handle('open-path', async (event, filePath) => {
   shell.showItemInFolder(filePath);
 });

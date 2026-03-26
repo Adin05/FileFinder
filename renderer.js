@@ -4,6 +4,7 @@ const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 const findDuplicatesBtn = document.getElementById('findDuplicatesBtn');
 const stopBtn = document.getElementById('stopBtn');
+const selectExcludeBtn = document.getElementById('selectExcludeBtn');
 const excludeInput = document.getElementById('excludeInput');
 const filterInput = document.getElementById('filterInput');
 const batchTrashAllBtn = document.getElementById('batchTrashAllBtn');
@@ -20,6 +21,25 @@ selectFolderBtn.addEventListener('click', async () => {
         selectedPath = folder;
         folderPathInput.value = folder;
         updateSearchButtonState();
+    }
+});
+
+selectExcludeBtn.addEventListener('click', async () => {
+    const folders = await window.api.selectMultipleFolders();
+    if (folders && folders.length > 0) {
+        folders.forEach(folder => {
+            // Extract the target folder name
+            const normalizedPath = folder.replace(/\\/g, '/');
+            const folderName = normalizedPath.substring(normalizedPath.lastIndexOf('/') + 1);
+            
+            if (folderName) {
+                const currentList = getExcludeList();
+                if (!currentList.includes(folderName.toLowerCase())) {
+                    const currentVal = excludeInput.value.trim();
+                    excludeInput.value = currentVal ? `${currentVal}, ${folderName}` : folderName;
+                }
+            }
+        });
     }
 });
 
@@ -48,6 +68,7 @@ searchBtn.addEventListener('click', async () => {
     findDuplicatesBtn.disabled = true;
     stopBtn.disabled = false;
     selectFolderBtn.disabled = true;
+    selectExcludeBtn.disabled = true;
     searchInput.disabled = true;
     excludeInput.disabled = true;
     statusArea.textContent = `Searching for "${searchTerm}" in ${selectedPath}...`;
@@ -60,6 +81,7 @@ searchBtn.addEventListener('click', async () => {
     updateSearchButtonState();
     stopBtn.disabled = true;
     selectFolderBtn.disabled = false;
+    selectExcludeBtn.disabled = false;
     searchInput.disabled = false;
     excludeInput.disabled = false;
     
@@ -88,6 +110,7 @@ findDuplicatesBtn.addEventListener('click', async () => {
     findDuplicatesBtn.disabled = true;
     stopBtn.disabled = false;
     selectFolderBtn.disabled = true;
+    selectExcludeBtn.disabled = true;
     searchInput.disabled = true;
     excludeInput.disabled = true;
     statusArea.textContent = `Scanning for duplicate files in ${selectedPath}... (This may take a while)`;
@@ -100,6 +123,7 @@ findDuplicatesBtn.addEventListener('click', async () => {
     updateSearchButtonState();
     stopBtn.disabled = true;
     selectFolderBtn.disabled = false;
+    selectExcludeBtn.disabled = false;
     searchInput.disabled = false;
     excludeInput.disabled = false;
     
