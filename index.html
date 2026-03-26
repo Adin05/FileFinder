@@ -9,6 +9,7 @@
     <div class="tabs">
         <button id="tabSearch" class="active">Search & Duplicates</button>
         <button id="tabMerge">Merge & Organize</button>
+        <button id="tabClean">Clean Empty Folders</button>
     </div>
 
     <div class="container" id="searchView">
@@ -70,6 +71,25 @@
         </div>
         
         <div class="status" id="mergeStatusArea">Ready. Select source and target folders.</div>
+    </div>
+    
+    <div class="container" id="cleanView" style="display: none;">
+        <h1>Clean Empty Folders</h1>
+        
+        <div class="controls">
+            <p style="margin-top: 0; margin-bottom: 10px; color: #a6adc8;">Deeply scans a folder and safely removes any completely empty sub-directories recursively.</p>
+            
+            <div class="input-group">
+                <button id="selectCleanTargetBtn" style="white-space: nowrap;">Select Folder to Clean</button>
+                <input type="text" id="cleanTargetPath" readonly placeholder="No folder selected">
+            </div>
+            
+            <div class="input-group" style="margin-top: 15px;">
+                <button id="startCleanBtn" disabled>Start Cleaning</button>
+            </div>
+        </div>
+        
+        <div class="status" id="cleanStatusArea">Ready. Select a folder to clean.</div>
     </div>
     
     <script src="renderer.js"></script>

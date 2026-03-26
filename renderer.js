@@ -363,21 +363,36 @@ batchTrashAllBtn.addEventListener('click', async () => {
 // --- Tab Logic ---
 const tabSearch = document.getElementById('tabSearch');
 const tabMerge = document.getElementById('tabMerge');
+const tabClean = document.getElementById('tabClean');
 const searchView = document.getElementById('searchView');
 const mergeView = document.getElementById('mergeView');
+const cleanView = document.getElementById('cleanView');
 
 tabSearch.addEventListener('click', () => {
     tabSearch.classList.add('active');
     tabMerge.classList.remove('active');
+    tabClean.classList.remove('active');
     searchView.style.display = 'flex';
     mergeView.style.display = 'none';
+    cleanView.style.display = 'none';
 });
 
 tabMerge.addEventListener('click', () => {
     tabMerge.classList.add('active');
     tabSearch.classList.remove('active');
+    tabClean.classList.remove('active');
     mergeView.style.display = 'flex';
     searchView.style.display = 'none';
+    cleanView.style.display = 'none';
+});
+
+tabClean.addEventListener('click', () => {
+    tabClean.classList.add('active');
+    tabSearch.classList.remove('active');
+    tabMerge.classList.remove('active');
+    cleanView.style.display = 'flex';
+    searchView.style.display = 'none';
+    mergeView.style.display = 'none';
 });
 
 // --- Merge & Organize Logic ---
@@ -485,3 +500,43 @@ window.api.onMergeProgress((message) => {
 });
 
 updateMergeSourcesUI();
+
+// --- Clean Empty Folders Logic ---
+const selectCleanTargetBtn = document.getElementById('selectCleanTargetBtn');
+const cleanTargetPathInput = document.getElementById('cleanTargetPath');
+const startCleanBtn = document.getElementById('startCleanBtn');
+const cleanStatusArea = document.getElementById('cleanStatusArea');
+
+let cleanTarget = '';
+
+selectCleanTargetBtn.addEventListener('click', async () => {
+    const folder = await window.api.selectFolder();
+    if (folder) {
+        cleanTarget = folder;
+        cleanTargetPathInput.value = cleanTarget;
+        startCleanBtn.disabled = false;
+    }
+});
+
+startCleanBtn.addEventListener('click', async () => {
+    if (!cleanTarget) return;
+    
+    startCleanBtn.disabled = true;
+    selectCleanTargetBtn.disabled = true;
+    cleanStatusArea.textContent = 'Scanning and cleaning...';
+    
+    const result = await window.api.cleanEmptyFolders(cleanTarget);
+    
+    startCleanBtn.disabled = false;
+    selectCleanTargetBtn.disabled = false;
+    
+    if (result.success) {
+        cleanStatusArea.textContent = `Cleanup complete. Safely removed ${result.foldersRemoved} empty folders.`;
+    } else {
+        cleanStatusArea.textContent = `Error during cleanup: ${result.error}`;
+    }
+});
+
+window.api.onCleanProgress((message) => {
+    cleanStatusArea.textContent = message;
+});

@@ -13,5 +13,7 @@ contextBridge.exposeInMainWorld('api', {
   trashFile: (filePath) => ipcRenderer.invoke('trash-file', filePath),
   startMerge: (sources, target) => ipcRenderer.invoke('merge-folders', sources, target),
   stopMerge: () => ipcRenderer.send('stop-merge'),
-  onMergeProgress: (callback) => ipcRenderer.on('merge-progress', (_event, msg) => callback(msg))
+  onMergeProgress: (callback) => ipcRenderer.on('merge-progress', (_event, msg) => callback(msg)),
+  cleanEmptyFolders: (folder) => ipcRenderer.invoke('clean-empty-folders', folder),
+  onCleanProgress: (callback) => ipcRenderer.on('clean-progress', (_event, msg) => callback(msg))
 });

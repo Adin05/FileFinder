@@ -355,3 +355,57 @@ ipcMain.handle('merge-folders', async (event, sourceFolders, targetFolder) => {
     return { success: false, error: e.message };
   }
 });
+
+let isCleaning = false;
+
+ipcMain.handle('clean-empty-folders', async (event, targetFolder) => {
+    let foldersRemoved = 0;
+    isCleaning = true;
+    
+    async function cleanDir(dir) {
+        if (!isCleaning) return false;
+        
+        let isClean = true;
+        try {
+            const entries = await fs.readdir(dir, { withFileTypes: true });
+            
+            for (const entry of entries) {
+                if (!isCleaning) return false;
+                
+                const fullPath = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                    const childClean = await cleanDir(fullPath);
+                    if (!childClean) isClean = false;
+                } else {
+                    isClean = false; // It contains a file, not clean
+                }
+            }
+            
+            if (isClean && dir !== targetFolder) {
+                await fs.rmdir(dir);
+                foldersRemoved++;
+                
+                if (foldersRemoved % 10 === 0) {
+                    event.sender.send('clean-progress', `Removed ${foldersRemoved} empty folders...`);
+                }
+            }
+        } catch(e) {
+            isClean = false; // Cannot read or remove (e.g. perms, locked), treat as containing items
+        }
+        
+        // Yield to event loop to keep UI responsive
+        await new Promise(resolve => setImmediate(resolve));
+        
+        return isClean;
+    }
+    
+    try {
+        event.sender.send('clean-progress', 'Scanning and cleaning...');
+        await cleanDir(targetFolder);
+        isCleaning = false;
+        return { success: true, foldersRemoved };
+    } catch(e) {
+        isCleaning = false;
+        return { success: false, error: e.message };
+    }
+});
