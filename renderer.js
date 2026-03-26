@@ -15,11 +15,14 @@ let currentDuplicateGroups = [];
 
 let selectedPath = '';
 
+const DEFAULT_EXCLUDES = 'node_modules, .git, vendor, packages, target, build, dist, out, __pycache__, venv, env, .idea, .vscode, wwwroot, wwroot, bin, bi, lib, release, public, etc, css, js';
+
 selectFolderBtn.addEventListener('click', async () => {
     const folder = await window.api.selectFolder();
     if (folder) {
         selectedPath = folder;
         folderPathInput.value = folder;
+        excludeInput.value = DEFAULT_EXCLUDES;
         updateSearchButtonState();
     }
 });
