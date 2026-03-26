@@ -14,7 +14,7 @@
   },
   "build": {
     "appId": "com.filefinder.organizer",
-    "productName": "FormatOrganizer",
+    "productName": "FileOrganizer",
     "directories": {
       "output": "dist"
     },
