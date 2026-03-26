@@ -145,7 +145,7 @@ ipcMain.handle('find-duplicates', async (event, folderPath, excludeList = []) =>
                 if (!sizeMap.has(stats.size)) {
                   sizeMap.set(stats.size, []);
                 }
-                sizeMap.get(stats.size).push({name: entry.name, path: fullPath});
+                sizeMap.get(stats.size).push({name: entry.name, path: fullPath, mtimeMs: stats.mtimeMs});
               }
             } catch(e) {
               // Ignore stat errors

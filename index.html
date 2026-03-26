@@ -29,8 +29,9 @@
 
         <div class="status" id="statusArea">Ready. Waiting for input.</div>
 
-        <div class="result-actions" style="margin-bottom: 10px;">
-            <input type="text" id="filterInput" placeholder="Filter displayed results by name..." style="width: 100%; box-sizing: border-box;">
+        <div class="result-actions" style="margin-bottom: 10px; display: flex; gap: 10px;">
+            <input type="text" id="filterInput" placeholder="Filter displayed results by name..." style="flex-grow: 1; box-sizing: border-box;">
+            <button id="batchTrashAllBtn" style="display: none; background-color: var(--accent); color: #11111b; white-space: nowrap;">Trash All Older Duplicates</button>
         </div>
         
         <div class="results-container">

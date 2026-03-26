@@ -6,8 +6,11 @@ const findDuplicatesBtn = document.getElementById('findDuplicatesBtn');
 const stopBtn = document.getElementById('stopBtn');
 const excludeInput = document.getElementById('excludeInput');
 const filterInput = document.getElementById('filterInput');
+const batchTrashAllBtn = document.getElementById('batchTrashAllBtn');
 const resultsList = document.getElementById('resultsList');
 const statusArea = document.getElementById('statusArea');
+
+let currentDuplicateGroups = [];
 
 let selectedPath = '';
 
@@ -40,6 +43,7 @@ searchBtn.addEventListener('click', async () => {
     // Reset UI
     resultsList.innerHTML = '';
     filterInput.value = '';
+    batchTrashAllBtn.style.display = 'none';
     searchBtn.disabled = true;
     findDuplicatesBtn.disabled = true;
     stopBtn.disabled = false;
@@ -78,6 +82,8 @@ findDuplicatesBtn.addEventListener('click', async () => {
     // Reset UI
     resultsList.innerHTML = '';
     filterInput.value = '';
+    batchTrashAllBtn.style.display = 'none';
+    currentDuplicateGroups = [];
     searchBtn.disabled = true;
     findDuplicatesBtn.disabled = true;
     stopBtn.disabled = false;
@@ -101,6 +107,10 @@ findDuplicatesBtn.addEventListener('click', async () => {
         statusArea.textContent = `Search completed. Found ${result.results} duplicate groups.`;
     } else {
         statusArea.textContent = `Search stopped by user. Found ${result.results} duplicate groups.`;
+    }
+    
+    if (result.results > 0) {
+        batchTrashAllBtn.style.display = 'block';
     }
 });
 
@@ -170,14 +180,57 @@ window.api.onDuplicateResult((duplicates) => {
     groupLi.style.borderLeft = '4px solid var(--accent)';
     groupLi.style.marginBottom = '10px';
     
+    const headerRow = document.createElement('div');
+    headerRow.style.display = 'flex';
+    headerRow.style.justifyContent = 'space-between';
+    headerRow.style.alignItems = 'center';
+    headerRow.style.width = '100%';
+    headerRow.style.marginBottom = '10px';
+    
     const header = document.createElement('div');
-    header.style.marginBottom = '10px';
     header.style.fontWeight = 'bold';
     header.style.color = 'var(--accent)';
     header.textContent = `Duplicate Group (${duplicates.length} files with identical content)`;
-    groupLi.appendChild(header);
     
-    duplicates.forEach(result => {
+    // Sort duplicates newest first
+    duplicates.sort((a, b) => (b.mtimeMs || 0) - (a.mtimeMs || 0));
+    
+    const fileElements = [];
+    const groupData = { duplicates, fileElements, groupLi, headerRow };
+    currentDuplicateGroups.push(groupData);
+
+    const batchTrashBtn = document.createElement('button');
+    batchTrashBtn.className = 'open-btn';
+    batchTrashBtn.style.backgroundColor = 'var(--accent)';
+    batchTrashBtn.style.color = '#11111b';
+    batchTrashBtn.textContent = 'Trash Older Copies';
+    
+    const doBatchTrash = async (btn) => {
+        btn.disabled = true;
+        btn.textContent = 'Trashing...';
+        
+        for (let i = 1; i < duplicates.length; i++) {
+            try {
+                await window.api.trashFile(duplicates[i].path);
+                if (fileElements[i]) fileElements[i].remove();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        
+        btn.remove();
+        header.textContent = `Resolved Group (kept newest copy)`;
+    };
+    
+    batchTrashBtn.addEventListener('click', () => doBatchTrash(batchTrashBtn));
+    groupData.doBatchTrash = doBatchTrash;
+    groupData.batchTrashBtn = batchTrashBtn;
+
+    headerRow.appendChild(header);
+    headerRow.appendChild(batchTrashBtn);
+    groupLi.appendChild(headerRow);
+    
+    duplicates.forEach((result, index) => {
         const fileDiv = document.createElement('div');
         fileDiv.style.display = 'flex';
         fileDiv.style.justifyContent = 'space-between';
@@ -241,6 +294,7 @@ window.api.onDuplicateResult((duplicates) => {
         fileDiv.appendChild(actionsDiv);
         
         groupLi.appendChild(fileDiv);
+        fileElements[index] = fileDiv;
     });
     
     // remove last border bottom
@@ -262,4 +316,19 @@ filterInput.addEventListener('input', () => {
             li.style.display = 'none';
         }
     });
+});
+
+batchTrashAllBtn.addEventListener('click', async () => {
+    batchTrashAllBtn.disabled = true;
+    batchTrashAllBtn.textContent = 'Trashing All Older Files...';
+    
+    for (const group of currentDuplicateGroups) {
+        if (group.groupLi.parentNode) { // Check if it's still in the list
+            await group.doBatchTrash(group.batchTrashBtn);
+        }
+    }
+    
+    batchTrashAllBtn.textContent = 'Trash All Older Duplicates';
+    batchTrashAllBtn.disabled = false;
+    batchTrashAllBtn.style.display = 'none';
 });
